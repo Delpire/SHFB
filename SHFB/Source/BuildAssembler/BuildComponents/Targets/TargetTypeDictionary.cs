@@ -276,6 +276,18 @@ namespace Microsoft.Ddue.Tools.Targets
         }
 
         /// <summary>
+        /// This read-only property is used to determine if any of the target dictionaries require the
+        /// <see cref="MicrosoftDocsResolver"/> to look up links.
+        /// </summary>
+        public bool NeedsMicrosoftDocsResolver
+        {
+            get
+            {
+                return targetDictionaries.Any(kv => kv.Key == ReferenceLinkType.MicrosoftDocs);
+            }
+        }
+
+        /// <summary>
         /// Add a target type dictionary to the collection
         /// </summary>
         /// <param name="type">The reference link type to use for targets in the given dictionary</param>

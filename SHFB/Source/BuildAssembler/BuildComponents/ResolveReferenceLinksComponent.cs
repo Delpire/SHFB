@@ -84,6 +84,8 @@ namespace Microsoft.Ddue.Tools.BuildComponent
 
         private MsdnResolver msdnResolver;
 
+        private MicrosoftDocsResolver microsoftDocsResolver;
+
         private string linkTarget, msdnIdCacheFile;
 
         // WebDocs target URL formatting (legacy Microsoft stuff)
@@ -101,6 +103,14 @@ namespace Microsoft.Ddue.Tools.BuildComponent
         protected MsdnResolver MsdnResolver
         {
             get { return msdnResolver; }
+        }
+
+        /// <summary>
+        /// This read-only property returns the docs.microsoft.com url resolver instance
+        /// </summary>
+        protected MicrosoftDocsResolver MicrosoftDocsResolver
+        {
+            get { return microsoftDocsResolver; }
         }
 
         /// <summary>
@@ -224,6 +234,20 @@ namespace Microsoft.Ddue.Tools.BuildComponent
                     msdnResolver.Locale = localeValue;
             }
 
+            if(targets.NeedsMicrosoftDocsResolver)
+            {
+                this.WriteMessage(MessageLevel.Info, "Creating docs.microsoft.com URL resolver");
+
+                microsoftDocsResolver = new MicrosoftDocsResolver();
+
+                string localeValue = (string)configuration.Evaluate("string(locale/@value)");
+
+                if(!String.IsNullOrWhiteSpace(localeValue))
+                    microsoftDocsResolver.Locale = localeValue;
+
+                //TODO: Add dotnet type and version here.
+            }
+
             linkTarget = (string)configuration.Evaluate("string(linkTarget/@value)");
 
             if(String.IsNullOrWhiteSpace(linkTarget))
@@ -235,6 +259,7 @@ namespace Microsoft.Ddue.Tools.BuildComponent
         {
             Target target = null, keyTarget;
             string msdnUrl = null;
+            string microsoftDocsUrl = null;
 
             foreach(XPathNavigator linkNode in document.CreateNavigator().Select(referenceLinkExpression).ToArray())
             {
@@ -373,6 +398,7 @@ namespace Microsoft.Ddue.Tools.BuildComponent
 
                 // Get MSDN endpoint if needed
                 if(type == ReferenceLinkType.Msdn)
+                {
                     if(msdnResolver != null && !msdnResolver.IsDisabled)
                     {
                         msdnUrl = msdnResolver.GetMsdnUrl(targetId);
@@ -393,6 +419,19 @@ namespace Microsoft.Ddue.Tools.BuildComponent
                     }
                     else
                         type = ReferenceLinkType.None;
+                }
+                else if (type == ReferenceLinkType.MicrosoftDocs)
+                {
+                    microsoftDocsUrl = microsoftDocsResolver.GetMicrosoftDocsUrl(targetId);
+
+                    if(String.IsNullOrEmpty(microsoftDocsUrl))
+                    {
+                        this.WriteMessage(key, MessageLevel.Warn, "docs.microsoft.com URL not found for target '{0}'.",
+                            targetId);
+                        type = ReferenceLinkType.None;
+                    }
+                }
+
 
                 // Write opening link tag and target info
                 XmlWriter writer = linkNode.InsertAfter();
@@ -430,6 +469,12 @@ namespace Microsoft.Ddue.Tools.BuildComponent
                     case ReferenceLinkType.Msdn:
                         writer.WriteStartElement("a");
                         writer.WriteAttributeString("href", msdnUrl);
+                        writer.WriteAttributeString("target", linkTarget);
+                        break;
+
+                    case ReferenceLinkType.MicrosoftDocs:
+                        writer.WriteStartElement("a");
+                        writer.WriteAttributeString("href", microsoftDocsUrl);
                         writer.WriteAttributeString("target", linkTarget);
                         break;
 

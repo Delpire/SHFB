@@ -33,6 +33,8 @@ namespace Microsoft.Ddue.Tools.Targets
         /// <summary>Online links to MSDN (Framework types only)</summary>
         Msdn,
         /// <summary>Id links (MS Help Viewer only)</summary>
-        Id
+        Id,
+        /// <summary>Online links to docs.microsoft.com // TODO: cdelpire this can be made to be .net core too (Framework types only)</summary>
+        MicrosoftDocs,
     }
 }

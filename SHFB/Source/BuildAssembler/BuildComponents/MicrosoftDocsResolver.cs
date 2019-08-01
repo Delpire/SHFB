@@ -6,6 +6,10 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Ddue.Tools.BuildComponent
 {
+    /// <summary>
+    /// This is used to create urls to docs.microsoft.com using
+    /// .NET Framework member IDs.
+    /// </summary>
     public class MicrosoftDocsResolver
     {
         /// <summary>
